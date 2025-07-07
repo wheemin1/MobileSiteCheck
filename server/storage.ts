@@ -74,7 +74,7 @@ export class MemStorage implements IStorage {
       if (report) {
         // Check if report is less than 24 hours old
         const now = new Date();
-        const reportTime = new Date(report.analysisTimestamp);
+        const reportTime = new Date(report.analysisTimestamp || new Date());
         const hoursDiff = (now.getTime() - reportTime.getTime()) / (1000 * 60 * 60);
         
         if (hoursDiff < 24) {

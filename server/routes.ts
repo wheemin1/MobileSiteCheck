@@ -1,12 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { LighthouseService } from "./services/lighthouse";
+import { MockLighthouseService } from "./services/mock-lighthouse";
 import { ReportService } from "./services/report";
 import { urlAnalysisSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const lighthouseService = new LighthouseService();
+  const lighthouseService = new MockLighthouseService();
   const reportService = new ReportService();
 
   // Analyze URL endpoint

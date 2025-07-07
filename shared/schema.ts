@@ -16,12 +16,12 @@ export const analysisReports = pgTable("analysis_reports", {
   accessibilityScore: integer("accessibility_score").notNull(),
   bestPracticesScore: integer("best_practices_score").notNull(),
   seoScore: integer("seo_score").notNull(),
-  mobileViewport: jsonb("mobile_viewport"),
-  touchElements: jsonb("touch_elements"),
-  textSize: jsonb("text_size"),
-  contentWidth: jsonb("content_width"),
-  coreWebVitals: jsonb("core_web_vitals"),
-  recommendations: jsonb("recommendations"),
+  mobileViewport: jsonb("mobile_viewport").notNull(),
+  touchElements: jsonb("touch_elements").notNull(),
+  textSize: jsonb("text_size").notNull(),
+  contentWidth: jsonb("content_width").notNull(),
+  coreWebVitals: jsonb("core_web_vitals").notNull(),
+  recommendations: jsonb("recommendations").notNull(),
   analysisTimestamp: timestamp("analysis_timestamp").defaultNow(),
 });
 

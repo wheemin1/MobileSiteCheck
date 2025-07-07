@@ -33,7 +33,7 @@ This is a full-stack web application built with React and Express that analyzes 
 - **Migrations**: Managed through Drizzle Kit
 
 ### Analysis Engine
-- **LighthouseService**: Integrates with Google Lighthouse CLI for mobile analysis
+- **MockLighthouseService**: Simulates mobile analysis with realistic scoring algorithms (Note: Uses mock data due to browser environment limitations)
 - **Metrics Tracked**:
   - Overall mobile friendliness score
   - Performance, accessibility, best practices, and SEO scores

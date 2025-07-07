@@ -1,14 +1,48 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react";
 
 export function AnalysisLoading() {
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState("URL 검증 중...");
+  
+  useEffect(() => {
+    const steps = [
+      { progress: 20, text: "URL 검증 중..." },
+      { progress: 40, text: "모바일 뷰포트 분석..." },
+      { progress: 60, text: "터치 요소 검사..." },
+      { progress: 80, text: "성능 측정..." },
+      { progress: 95, text: "결과 생성 중..." }
+    ];
+    
+    let stepIndex = 0;
+    const interval = setInterval(() => {
+      if (stepIndex < steps.length) {
+        setProgress(steps[stepIndex].progress);
+        setCurrentStep(steps[stepIndex].text);
+        stepIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 800);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-8">
       <Card>
         <CardContent className="pt-8">
           <div className="text-center mb-8">
-            <Skeleton className="h-8 w-48 mx-auto mb-2" />
-            <Skeleton className="h-4 w-64 mx-auto" />
+            <div className="text-2xl font-bold mb-2">웹사이트 분석 중</div>
+            <p className="text-gray-600 mb-6">모바일 친화성을 종합적으로 분석하고 있습니다</p>
+            
+            <div className="max-w-md mx-auto mb-4">
+              <Progress value={progress} className="h-2" />
+            </div>
+            
+            <p className="text-sm text-blue-600 font-medium">{currentStep}</p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 items-center">

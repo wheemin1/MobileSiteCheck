@@ -72,7 +72,7 @@ export default function Home() {
             />
             <p className="text-sm text-blue-100 mt-4">
               <span className="inline-block w-1 h-1 rounded-full bg-blue-100 mr-2"></span>
-              분석에는 약 30초가 소요됩니다
+              분석에는 약 5-10초가 소요됩니다 (데모 버전)
             </p>
           </div>
         </div>
