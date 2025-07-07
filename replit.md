@@ -33,7 +33,8 @@ This is a full-stack web application built with React and Express that analyzes 
 - **Migrations**: Managed through Drizzle Kit
 
 ### Analysis Engine
-- **MockLighthouseService**: Simulates mobile analysis with realistic scoring algorithms (Note: Uses mock data due to browser environment limitations)
+- **LighthouseService**: Integrates with Google Lighthouse CLI for authentic mobile analysis
+- **WebsitePreviewService**: Generates mobile viewport screenshots for user verification
 - **Metrics Tracked**:
   - Overall mobile friendliness score
   - Performance, accessibility, best practices, and SEO scores
@@ -104,6 +105,9 @@ This is a full-stack web application built with React and Express that analyzes 
 ```
 Changelog:
 - July 07, 2025. Initial setup
+- July 07, 2025. Implemented real Lighthouse analysis with Chromium browser
+- July 07, 2025. Added website preview functionality for user verification
+- July 07, 2025. Enhanced UI with progressive loading states and Korean language support
 ```
 
 ## User Preferences

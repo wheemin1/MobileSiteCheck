@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,20 +18,28 @@ const urlSchema = z.object({
 type UrlFormData = z.infer<typeof urlSchema>;
 
 interface UrlInputFormProps {
+  onUrlSubmit: (url: string) => void;
   onAnalysisStart: () => void;
   onAnalysisComplete: (report: AnalysisReport) => void;
   onAnalysisError: (error: string) => void;
+  currentUrl: string;
+  showPreview: boolean;
 }
 
-export function UrlInputForm({ onAnalysisStart, onAnalysisComplete, onAnalysisError }: UrlInputFormProps) {
+export function UrlInputForm({ onUrlSubmit, onAnalysisStart, onAnalysisComplete, onAnalysisError, currentUrl, showPreview }: UrlInputFormProps) {
   const { toast } = useToast();
   
   const form = useForm<UrlFormData>({
     resolver: zodResolver(urlSchema),
     defaultValues: {
-      url: ""
+      url: currentUrl
     }
   });
+
+  // Update form when currentUrl changes
+  useEffect(() => {
+    form.setValue('url', currentUrl);
+  }, [currentUrl, form]);
 
   const analysisMutation = useMutation({
     mutationFn: async (data: UrlFormData) => {
@@ -56,9 +64,25 @@ export function UrlInputForm({ onAnalysisStart, onAnalysisComplete, onAnalysisEr
     }
   });
 
+  // Listen for analysis event from preview confirmation
+  useEffect(() => {
+    const handleStartAnalysis = (event: any) => {
+      if (event.detail.url) {
+        onAnalysisStart();
+        analysisMutation.mutate({ url: event.detail.url });
+      }
+    };
+
+    window.addEventListener('startAnalysis', handleStartAnalysis);
+    return () => window.removeEventListener('startAnalysis', handleStartAnalysis);
+  }, [onAnalysisStart, analysisMutation]);
+
   const onSubmit = async (data: UrlFormData) => {
-    onAnalysisStart();
-    analysisMutation.mutate(data);
+    if (showPreview) {
+      // If preview is already shown, don't submit again
+      return;
+    }
+    onUrlSubmit(data.url);
   };
 
   return (
@@ -82,7 +106,7 @@ export function UrlInputForm({ onAnalysisStart, onAnalysisComplete, onAnalysisEr
         />
         <Button 
           type="submit" 
-          disabled={analysisMutation.isPending}
+          disabled={analysisMutation.isPending || showPreview}
           className="bg-white text-primary px-8 py-3 font-semibold hover:bg-gray-50 transition-colors"
         >
           {analysisMutation.isPending ? (
@@ -90,10 +114,15 @@ export function UrlInputForm({ onAnalysisStart, onAnalysisComplete, onAnalysisEr
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
               분석 중...
             </>
+          ) : showPreview ? (
+            <>
+              <Search className="w-4 h-4 mr-2" />
+              미리보기 확인 중
+            </>
           ) : (
             <>
               <Search className="w-4 h-4 mr-2" />
-              분석 시작
+              미리보기 생성
             </>
           )}
         </Button>

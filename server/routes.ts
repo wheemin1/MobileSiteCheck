@@ -1,13 +1,34 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { MockLighthouseService } from "./services/mock-lighthouse";
+import { LighthouseService } from "./services/lighthouse";
+import { WebsitePreviewService } from "./services/website-preview";
 import { ReportService } from "./services/report";
 import { urlAnalysisSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const lighthouseService = new MockLighthouseService();
+  const lighthouseService = new LighthouseService();
+  const previewService = new WebsitePreviewService();
   const reportService = new ReportService();
+
+  // Website preview endpoint
+  app.post("/api/preview", async (req, res) => {
+    try {
+      const { url } = urlAnalysisSchema.parse(req.body);
+      const preview = await previewService.generatePreview(url);
+      
+      res.json({
+        title: preview.title,
+        description: preview.description,
+        screenshot: preview.screenshot.toString('base64')
+      });
+    } catch (error) {
+      console.error("Preview error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "미리보기 생성 중 오류가 발생했습니다." 
+      });
+    }
+  });
 
   // Analyze URL endpoint
   app.post("/api/analyze", async (req, res) => {

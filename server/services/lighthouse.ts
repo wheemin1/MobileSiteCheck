@@ -29,8 +29,11 @@ interface LighthouseResult {
 export class LighthouseService {
   async analyzeUrl(url: string): Promise<InsertAnalysisReport> {
     try {
+      // Set Chrome path for Lighthouse
+      process.env.CHROME_PATH = '/usr/bin/chromium';
+      
       // Run Lighthouse CLI with mobile configuration
-      const command = `lighthouse "${url}" --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=/tmp/lighthouse-${Date.now()}.json --emulated-form-factor=mobile --throttling-method=simulate --no-enable-error-reporting --quiet`;
+      const command = `lighthouse "${url}" --only-categories=performance,accessibility,best-practices,seo --output=json --emulated-form-factor=mobile --throttling-method=simulate --no-enable-error-reporting --quiet --chrome-flags="--headless --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"`;
       
       const { stdout } = await execAsync(command);
       const result: LighthouseResult = JSON.parse(stdout);

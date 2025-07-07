@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { UrlInputForm } from "@/components/url-input-form";
+import { WebsitePreview } from "@/components/website-preview";
 import { AnalysisLoading } from "@/components/analysis-loading";
 import { AnalysisResults } from "@/components/analysis-results";
 import { FeaturesSection } from "@/components/features-section";
@@ -12,23 +13,48 @@ export default function Home() {
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string>("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleAnalysisComplete = (report: AnalysisReport) => {
     setAnalysisReport(report);
     setIsLoading(false);
     setError(null);
+    setShowPreview(false);
   };
 
   const handleAnalysisStart = () => {
     setIsLoading(true);
     setError(null);
     setAnalysisReport(null);
+    setShowPreview(false);
   };
 
   const handleAnalysisError = (errorMessage: string) => {
     setError(errorMessage);
     setIsLoading(false);
     setAnalysisReport(null);
+    setShowPreview(false);
+  };
+
+  const handleUrlSubmit = (url: string) => {
+    setCurrentUrl(url);
+    setShowPreview(true);
+    setError(null);
+    setAnalysisReport(null);
+  };
+
+  const handlePreviewConfirm = () => {
+    setShowPreview(false);
+    handleAnalysisStart();
+    // Trigger actual analysis
+    const event = new CustomEvent('startAnalysis', { detail: { url: currentUrl } });
+    window.dispatchEvent(event);
+  };
+
+  const handlePreviewCancel = () => {
+    setShowPreview(false);
+    setCurrentUrl("");
   };
 
   return (
@@ -66,17 +92,33 @@ export default function Home() {
           
           <div className="max-w-2xl mx-auto">
             <UrlInputForm 
+              onUrlSubmit={handleUrlSubmit}
               onAnalysisStart={handleAnalysisStart}
               onAnalysisComplete={handleAnalysisComplete}
               onAnalysisError={handleAnalysisError}
+              currentUrl={currentUrl}
+              showPreview={showPreview}
             />
             <p className="text-sm text-blue-100 mt-4">
               <span className="inline-block w-1 h-1 rounded-full bg-blue-100 mr-2"></span>
-              분석에는 약 5-10초가 소요됩니다 (데모 버전)
+              실제 Lighthouse 분석 (30-60초 소요)
             </p>
           </div>
         </div>
       </section>
+
+      {/* Website Preview */}
+      {showPreview && (
+        <section className="py-16 px-4">
+          <div className="max-w-6xl mx-auto">
+            <WebsitePreview 
+              url={currentUrl}
+              onConfirm={handlePreviewConfirm}
+              onCancel={handlePreviewCancel}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Analysis Results */}
       {isLoading && (
