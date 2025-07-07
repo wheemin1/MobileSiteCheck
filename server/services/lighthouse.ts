@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import * as fs from "fs";
 import { InsertAnalysisReport } from "@shared/schema";
 import { getChromePath } from "./browser-utils";
 
@@ -41,7 +42,6 @@ export class LighthouseService {
       const { stdout, stderr } = await execAsync(command);
       
       // Read the output file
-      const fs = require('fs');
       if (!fs.existsSync(tempFile)) {
         throw new Error('Lighthouse output file not created');
       }

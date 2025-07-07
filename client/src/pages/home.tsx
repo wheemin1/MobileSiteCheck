@@ -2,7 +2,7 @@ import { useState } from "react";
 import { UrlInputForm } from "@/components/url-input-form";
 import { WebsitePreview } from "@/components/website-preview";
 import { AnalysisLoading } from "@/components/analysis-loading";
-import { AnalysisResults } from "@/components/analysis-results";
+import { EnhancedAnalysisResults } from "@/components/enhanced-analysis-results";
 import { FeaturesSection } from "@/components/features-section";
 import { Footer } from "@/components/footer";
 import { AnalysisReport } from "@/lib/types";
@@ -143,7 +143,7 @@ export default function Home() {
       {analysisReport && (
         <section className="py-16 px-4">
           <div className="max-w-6xl mx-auto">
-            <AnalysisResults report={analysisReport} />
+            <EnhancedAnalysisResults report={analysisReport} />
           </div>
         </section>
       )}
