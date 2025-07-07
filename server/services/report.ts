@@ -1,18 +1,13 @@
 import puppeteer from "puppeteer";
 import { AnalysisReport } from "@shared/schema";
+import { getChromePath, chromeBrowserConfig } from "./browser-utils";
 
 export class ReportService {
   async generatePDF(report: AnalysisReport): Promise<Buffer> {
     try {
       const browser = await puppeteer.launch({ 
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu'
-        ],
-        executablePath: '/usr/bin/chromium'
+        ...chromeBrowserConfig,
+        executablePath: getChromePath()
       });
       
       try {
@@ -47,14 +42,8 @@ export class ReportService {
   async generateScreenshot(report: AnalysisReport): Promise<Buffer> {
     try {
       const browser = await puppeteer.launch({ 
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu'
-        ],
-        executablePath: '/usr/bin/chromium'
+        ...chromeBrowserConfig,
+        executablePath: getChromePath()
       });
       
       try {

@@ -1,22 +1,13 @@
 import puppeteer from "puppeteer";
+import { getChromePath, chromeBrowserConfig } from "./browser-utils";
 
 export class WebsitePreviewService {
   async generatePreview(url: string): Promise<{ screenshot: Buffer; title: string; description: string }> {
     let browser;
     try {
       browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-backgrounding-occluded-windows'
-        ],
-        executablePath: '/usr/bin/chromium'
+        ...chromeBrowserConfig,
+        executablePath: getChromePath()
       });
 
       const page = await browser.newPage();

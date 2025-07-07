@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { InsertAnalysisReport } from "@shared/schema";
+import { getChromePath } from "./browser-utils";
 
 const execAsync = promisify(exec);
 
@@ -30,7 +31,7 @@ export class LighthouseService {
   async analyzeUrl(url: string): Promise<InsertAnalysisReport> {
     try {
       // Set Chrome path for Lighthouse
-      process.env.CHROME_PATH = '/usr/bin/chromium';
+      process.env.CHROME_PATH = getChromePath();
       
       // Run Lighthouse CLI with mobile configuration
       const command = `lighthouse "${url}" --only-categories=performance,accessibility,best-practices,seo --output=json --emulated-form-factor=mobile --throttling-method=simulate --no-enable-error-reporting --quiet --chrome-flags="--headless --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"`;
