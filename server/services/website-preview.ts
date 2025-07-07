@@ -24,13 +24,17 @@ export class WebsitePreviewService {
       await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1');
 
       // Navigate to the URL with timeout
-      await page.goto(url, { 
-        waitUntil: 'networkidle0',
-        timeout: 30000 
-      });
+      try {
+        await page.goto(url, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 15000 
+        });
+      } catch (navError) {
+        console.log('Navigation timeout, proceeding with current state');
+      }
 
       // Wait a bit for any lazy-loaded content
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Get page title and description
       const pageInfo = await page.evaluate(() => {
@@ -40,16 +44,25 @@ export class WebsitePreviewService {
         return { title, description };
       });
 
-      // Take screenshot
-      const screenshot = await page.screenshot({
-        type: 'png',
-        clip: {
-          x: 0,
-          y: 0,
-          width: 375,
-          height: 600
-        }
-      });
+      // Take screenshot with error handling
+      let screenshot: Buffer;
+      try {
+        screenshot = await page.screenshot({
+          type: 'png',
+          clip: {
+            x: 0,
+            y: 0,
+            width: 375,
+            height: 600
+          }
+        });
+      } catch (screenshotError) {
+        // Try full page screenshot if clipped fails
+        screenshot = await page.screenshot({
+          type: 'png',
+          fullPage: false
+        });
+      }
 
       return {
         screenshot,

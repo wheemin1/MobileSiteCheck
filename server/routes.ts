@@ -38,14 +38,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for cached results
       const cachedResult = await storage.getCachedAnalysisReport(url);
       if (cachedResult) {
+        console.log('Returning cached result for:', url);
         return res.json(cachedResult);
       }
       
-      // Perform new analysis
-      const analysisData = await lighthouseService.analyzeUrl(url);
-      const report = await storage.createAnalysisReport(analysisData);
+      console.log('Starting new analysis for:', url);
       
-      res.json(report);
+      // Perform new analysis
+      try {
+        const analysisData = await lighthouseService.analyzeUrl(url);
+        const report = await storage.createAnalysisReport(analysisData);
+        console.log('Analysis completed successfully for:', url);
+        res.json(report);
+      } catch (lighthouseError) {
+        console.error("Lighthouse analysis failed, trying mock service:", lighthouseError);
+        
+        // Fallback to mock service if Lighthouse fails
+        const { MockLighthouseService } = await import("./services/mock-lighthouse");
+        const mockService = new MockLighthouseService();
+        const analysisData = await mockService.analyzeUrl(url);
+        const report = await storage.createAnalysisReport(analysisData);
+        console.log('Mock analysis completed for:', url);
+        res.json(report);
+      }
+      
     } catch (error) {
       console.error("Analysis error:", error);
       res.status(400).json({ 

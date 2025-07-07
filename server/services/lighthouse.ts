@@ -34,10 +34,29 @@ export class LighthouseService {
       process.env.CHROME_PATH = getChromePath();
       
       // Run Lighthouse CLI with mobile configuration
-      const command = `lighthouse "${url}" --only-categories=performance,accessibility,best-practices,seo --output=json --emulated-form-factor=mobile --throttling-method=simulate --no-enable-error-reporting --quiet --chrome-flags="--headless --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"`;
+      const tempFile = `/tmp/lighthouse-${Date.now()}.json`;
+      const command = `lighthouse "${url}" --only-categories=performance,accessibility,best-practices,seo --output=json --output-path="${tempFile}" --emulated-form-factor=mobile --throttling-method=simulate --no-enable-error-reporting --quiet --chrome-flags="--headless --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"`;
       
-      const { stdout } = await execAsync(command);
-      const result: LighthouseResult = JSON.parse(stdout);
+      console.log('Running Lighthouse command:', command);
+      const { stdout, stderr } = await execAsync(command);
+      
+      // Read the output file
+      const fs = require('fs');
+      if (!fs.existsSync(tempFile)) {
+        throw new Error('Lighthouse output file not created');
+      }
+      
+      const outputContent = fs.readFileSync(tempFile, 'utf8');
+      console.log('Lighthouse output content length:', outputContent.length);
+      
+      const result: LighthouseResult = JSON.parse(outputContent);
+      
+      // Clean up temp file
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
       
       return this.processLighthouseResult(url, result);
     } catch (error) {
@@ -47,55 +66,64 @@ export class LighthouseService {
   }
 
   private processLighthouseResult(url: string, result: LighthouseResult): InsertAnalysisReport {
-    const { lhr } = result;
+    console.log('Processing Lighthouse result for:', url);
+    console.log('Result structure:', Object.keys(result));
+    
+    const lhr = result.lhr || result;
+    if (!lhr || !lhr.categories) {
+      console.error('Invalid Lighthouse result structure:', result);
+      throw new Error('Invalid Lighthouse result structure');
+    }
     
     // Calculate overall score
     const scores = [
-      lhr.categories.performance.score,
-      lhr.categories.accessibility.score,
-      lhr.categories["best-practices"].score,
-      lhr.categories.seo.score
-    ];
+      lhr.categories.performance?.score || 0,
+      lhr.categories.accessibility?.score || 0,
+      lhr.categories["best-practices"]?.score || 0,
+      lhr.categories.seo?.score || 0
+    ].filter(score => score !== null);
     const overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 100);
 
-    // Process mobile-specific audits
+    // Process mobile-specific audits with safe access
+    const audits = lhr.audits || {};
+    
     const mobileViewport = {
-      score: lhr.audits.viewport.score,
-      passed: lhr.audits.viewport.score === 1,
-      details: lhr.audits.viewport.details
+      score: audits.viewport?.score || 0,
+      passed: (audits.viewport?.score || 0) === 1,
+      details: audits.viewport?.details
     };
 
     const touchElements = {
-      score: lhr.audits["tap-targets"].score,
-      passed: lhr.audits["tap-targets"].score === 1,
-      details: lhr.audits["tap-targets"].details
+      score: audits["tap-targets"]?.score || 0,
+      passed: (audits["tap-targets"]?.score || 0) === 1,
+      details: audits["tap-targets"]?.details
     };
 
     const textSize = {
-      score: lhr.audits["font-size"].score,
-      passed: lhr.audits["font-size"].score === 1,
-      details: lhr.audits["font-size"].details
+      score: audits["font-size"]?.score || 0,
+      passed: (audits["font-size"]?.score || 0) === 1,
+      details: audits["font-size"]?.details
     };
 
     const contentWidth = {
-      score: lhr.audits["content-width"].score,
-      passed: lhr.audits["content-width"].score === 1,
-      details: lhr.audits["content-width"].details
+      score: audits["content-width"]?.score || 0,
+      passed: (audits["content-width"]?.score || 0) === 1,
+      details: audits["content-width"]?.details
     };
 
-    // Process Core Web Vitals
+    // Process Core Web Vitals with safe access
     const coreWebVitals = {
       lcp: {
-        value: lhr.audits["largest-contentful-paint"].numericValue / 1000,
-        score: lhr.audits["largest-contentful-paint"].score
+        value: (audits["largest-contentful-paint"]?.numericValue || 0) / 1000,
+        score: audits["largest-contentful-paint"]?.score || 0
       },
       cls: {
-        value: lhr.audits["cumulative-layout-shift"].numericValue,
-        score: lhr.audits["cumulative-layout-shift"].score
+        value: audits["cumulative-layout-shift"]?.numericValue || 0,
+        score: audits["cumulative-layout-shift"]?.score || 0
       },
       inp: {
-        value: lhr.audits["interaction-to-next-paint"]?.numericValue || 0,
-        score: lhr.audits["interaction-to-next-paint"]?.score || 1
+        value: audits["interaction-to-next-paint"]?.numericValue || audits["max-potential-fid"]?.numericValue || 0,
+        score: audits["interaction-to-next-paint"]?.score || audits["max-potential-fid"]?.score || 0
       }
     };
 
@@ -111,10 +139,10 @@ export class LighthouseService {
     return {
       url,
       overallScore,
-      performanceScore: Math.round(lhr.categories.performance.score * 100),
-      accessibilityScore: Math.round(lhr.categories.accessibility.score * 100),
-      bestPracticesScore: Math.round(lhr.categories["best-practices"].score * 100),
-      seoScore: Math.round(lhr.categories.seo.score * 100),
+      performanceScore: Math.round((lhr.categories.performance?.score || 0) * 100),
+      accessibilityScore: Math.round((lhr.categories.accessibility?.score || 0) * 100),
+      bestPracticesScore: Math.round((lhr.categories["best-practices"]?.score || 0) * 100),
+      seoScore: Math.round((lhr.categories.seo?.score || 0) * 100),
       mobileViewport,
       touchElements,
       textSize,
