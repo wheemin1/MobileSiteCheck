@@ -1,4 +1,4 @@
-const { analyzeUrl } = require('../services/lighthouse');
+const { analyzeUrl } = require('./lighthouse-service');
 
 exports.handler = async function(event, context) {
   try {

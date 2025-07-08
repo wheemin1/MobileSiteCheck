@@ -1,4 +1,4 @@
-const { generatePreview } = require('../services/website-preview');
+const { generatePreview } = require('./website-preview-service');
 
 exports.handler = async function(event, context) {
   try {

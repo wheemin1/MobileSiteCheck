@@ -1,4 +1,4 @@
-const { generateReport } = require('../services/report');
+const { generateReport } = require('./report-service');
 
 exports.handler = async function(event, context) {
   try {
